@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{{ .Title }} - {{ .Author }}</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="HandheldFriendly" content="true" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700">
+  <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    body {
+      width: 700px;
+      margin: 0px auto;
+      font-family: 'Fira Mono', monospace;
+      line-height: 1.7;
+    }
+
+    a,
+    a:visited,
+    a:hover,
+    a:active,
+    a:focus {
+      color: black;
+      text-decoration: underline;
+      text-underline-position: under;
+    }
+
+    a:hover,
+    a:focus {
+      background: grey;
+      color: white;
+    }
+
+    .page {
+      background: #F0F0F0;
+    }
+
+    .page-contents {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    .page-title {
+      margin: 0px;
+    }
+
+    .page-links {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-link {
+      margin: 5px;
+    }
+
+
+    .page-content {}
+
+    .page-copyright {
+      margin: 5px;
+      text-align: right;
+    }
+
+    .year-list {}
+
+    .year-title {
+      margin-bottom: 10px;
+    }
+
+    .talks {}
+
+    .talk {
+      padding-bottom: 20px;
+      font-size: 15px;
+    }
+
+    .talk-header {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      font-size: 17px;
+      margin-bottom: 5px;
+    }
+
+    .talk-title {
+      font-weight: 700;
+    }
+
+    .talk-copresenter-label {
+      font-weight: 500;
+    }
+
+    .talk-copresenter {
+      margin-left: 10px;
+    }
+
+    .talk-copresenters {
+      display: flex;
+      flex-direction: row;
+      justify-items: left;
+    }
+
+    .talk-metadata {
+      display: flex;
+      flex-direction: row;
+      justify-items: left;
+    }
+
+    .talk-metadata-item {
+      margin-right: 10px;
+    }
+
+    .fa {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+
+<body class="page">
+  <div class="page-contents">
+    <div class="page-header">
+      <div class="page-title">
+        <h1>{{ .Title }}</h1>
+      </div>
+      {{ if .Links }}
+      <div class="page-links">
+        {{ range $link := .Links }}
+        <div class="page-link"><a href="{{ $link.Target }}">{{ $link.Name }}</a></div>
+        {{ end}}
+      </div>
+      {{ end }}
+    </div>
+    <div class="page-content">
+      {{ range $group := .Groups }}
+      <div class="year-list">
+        <h2 class="year-title">{{ $group.Year }}</h2>
+        <div class="talks">
+          {{ range $index, $talk := $group.Talks }}
+          <div class="talk">
+            <div class="talk-header">
+              <div class="talk-title"><a href="{{ $talk.Link }}">{{ $talk.Title }}</a></div>
+              <div class="talk-date">{{ $talk.Date.Format "2006-02-01" }}</div>
+            </div>
+            <div class="talk-location"><i class="fa fa-location-arrow fa-fw" aria-hidden="true"></i>{{ $talk.Location }}
+            </div>
+            {{ if $talk.CoPresenters }}
+            <div class="talk-copresenters">
+              <i class="fa fa-users fa-fw" aria-hidden="true"></i>
+              {{ $num := len $talk.CoPresenters }}
+              {{ if eq $num 1 }}
+              <div class="talk-copresenter-label">Co-Presenter:</div>
+              {{ else }}
+              <div class="talk-copresenter-label">Co-Presenters:</div>
+              {{ end }}
+              {{ range $copresenter := $talk.CoPresenters }}
+              <div class="talk-copresenter"><a href="{{ $copresenter.Link }}">{{ $copresenter.Name }}</a></div>
+              {{ end}}
+            </div>
+            {{ end }}
+            <div class="talk-metadata">
+              {{ if $talk.SlideURL }}
+              <div class="talk-metadata-item"><i class="fa fa-slideshare fa-fw" aria-hidden="true"></i><a
+                  href="{{ $talk.SlideURL }}">Slides</a>
+              </div>
+              {{ end }}
+              {{ if $talk.VideoURL}}
+              <div class="talk-metadata-item"><i class="fa fa-video-camera fa-fw" aria-hidden="true"></i>
+                <a href="{{ $talk.VideoURL }}">Recording</a>
+              </div>
+              {{ end }}
+            </div>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+      {{ end }}
+    </div>
+    <div class="page-copyright"><i class="fa fa-copyright fa-fw" aria-hidden="true"></i>
+      {{ .Author }}
+    </div>
+  </div>
+</body>
+
+</html>
