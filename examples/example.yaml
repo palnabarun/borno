@@ -1,0 +1,23 @@
+---
+author: John Doe
+page_title: Talks
+links:
+- name: Home
+  target: https://acme.corp
+- name: Twitter
+  target: https://foo.bar
+talks:
+- date: 2020-01-01
+  title: "A tale of eternal standards"
+  slides: https://foo.bar
+  video: https://foo.bar
+  location: Mars
+  copresenters:
+    - name: Timon
+      link: https://foo.bar/timon
+    - name: Pumba
+      link: https://foo.bar/pumba
+- date: 2019-06-01
+  title: "Hakuna Matata"
+  slides: https://foo.bar
+  location: Royal Jungle
