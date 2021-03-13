@@ -1,6 +1,6 @@
 # borno
 
-> "borno" means a letter in Bengali
+> "borno" means a letter of the alphabet in Bengali
 
 `borno` is yet another tiny static site generator. I wrote this small tool to build my talk listing.
 
