@@ -6,6 +6,8 @@
 
 Slowly, I plan to move to this for my microsite needs.
 
+![sample](sample.png)
+
 ## Usage
 
 - Clone the repository.
