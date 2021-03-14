@@ -1,28 +1,32 @@
 package internal
 
 import (
-	"html/template"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
 )
 
 type ServerOpts struct {
-	Config   BornoConfig
-	Template *template.Template
-	Logger   *logrus.Logger
-	Host     string
-	Port     int
+	Config           BornoConfig
+	TemplateLocation string
+	Logger           *logrus.Logger
+	Host             string
+	Port             int
 }
 
 type Server struct {
-	config   BornoConfig
-	logger   *logrus.Logger
-	template *template.Template
+	config        BornoConfig
+	logger        *logrus.Logger
+	templateStore TemplateStore
 }
 
 func NewServer(opts *ServerOpts) (*Server, error) {
-	return &Server{config: opts.Config, logger: opts.Logger, template: opts.Template}, nil
+	templateStore, err := NewInBuiltTemplateStore()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Server{config: opts.Config, logger: opts.Logger, templateStore: templateStore}, nil
 }
 
 func (s Server) Run() error {
@@ -47,14 +51,25 @@ func (s Server) handlerFunction(w http.ResponseWriter, r *http.Request) {
 		Groups: groupByYear(s.config.Talks),
 	}
 
-	if err := s.template.Execute(w, responseData); err != nil {
-		s.logger.Errorln(err)
-
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte("ERROR"))
-
+	template, err := s.templateStore.GetIndex()
+	if err != nil {
+		s.processError(w, r, err)
 		return
 	}
+
+	if err := template.Execute(w, responseData); err != nil {
+		s.processError(w, r, err)
+		return
+	}
+}
+
+func (s Server) processError(w http.ResponseWriter, r *http.Request, err error) {
+	s.logger.Errorln(err)
+
+	w.WriteHeader(http.StatusInternalServerError)
+	_, _ = w.Write([]byte("ERROR"))
+
+	return
 }
 
 func (s Server) logRequest(r *http.Request) {

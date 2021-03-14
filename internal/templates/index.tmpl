@@ -149,7 +149,7 @@
           {{ range $index, $talk := $group.Talks }}
           <div class="talk">
             <div class="talk-header">
-              <div class="talk-title"><a href="{{ $talk.Link }}">{{ $talk.Title }}</a></div>
+              <div class="talk-title">{{ $talk.Title }}</div>
               <div class="talk-date">{{ $talk.Date.Format "2006-02-01" }}</div>
             </div>
             <div class="talk-location"><i class="fa fa-location-arrow fa-fw" aria-hidden="true"></i>{{ $talk.Location }}
@@ -171,7 +171,7 @@
             <div class="talk-metadata">
               {{ if $talk.SlideURL }}
               <div class="talk-metadata-item"><i class="fa fa-slideshare fa-fw" aria-hidden="true"></i><a
-                  href="{{ $talk.SlideURL }}">Slides</a>
+                  href="/slides/{{ $group.Year }}/{{ $talk.Slug }}">Slides</a>
               </div>
               {{ end }}
               {{ if $talk.VideoURL}}
