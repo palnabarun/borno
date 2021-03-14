@@ -9,30 +9,29 @@ import (
 )
 
 type ServerOpts struct {
-	Config           BornoConfig
-	TemplateLocation string
-	Logger           *logrus.Logger
-	Host             string
-	Port             int
 }
 
 type Server struct {
 	config        BornoConfig
 	logger        *logrus.Logger
 	templateStore TemplateStore
+	configOpts    ConfigOpts
 }
 
-func NewServer(opts *ServerOpts) (*Server, error) {
+func NewServer(opts *ConfigOpts) (*Server, error) {
 	templateStore, err := NewInBuiltTemplateStore()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Server{config: opts.Config, logger: opts.Logger, templateStore: templateStore}, nil
+	return &Server{config: opts.Config, logger: opts.Logger, templateStore: templateStore, configOpts: *opts}, nil
 }
 
 func (s Server) Run() error {
 	mux := http.NewServeMux()
+
+	// fs := http.FileServer(http.Dir(s.configOpts.AssetsRoot))
+	// mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	mux.HandleFunc("/", s.handlerFunction)
 	return http.ListenAndServe(":8000", mux)
 }

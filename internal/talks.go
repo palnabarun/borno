@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -41,7 +42,13 @@ type TalkGroup struct {
 
 // ConfigOpts describes options for the config parser
 type ConfigOpts struct {
-	ConfigFile string
+	ConfigFile       string
+	AssetsRoot       string
+	Config           BornoConfig
+	TemplateLocation string
+	Logger           *logrus.Logger
+	Host             string
+	Port             int
 }
 
 // BornoConfig describes the configuration file format for borno

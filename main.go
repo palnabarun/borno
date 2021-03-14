@@ -18,9 +18,11 @@ func run(out io.Writer) error {
 	configOpts := &internal.ConfigOpts{}
 
 	flag.StringVarP(&configOpts.ConfigFile, "config", "c", "borno.yaml", "path to the borno config (DEFAULT: borno.yaml in current directory")
+	flag.StringVarP(&configOpts.AssetsRoot, "assets-dir", "", "assets", "path to the root of assets (DEFAULT: assets in current directory")
 	flag.Parse()
 
 	logger := internal.NewLogger(&internal.LoggerOpts{Out: out})
+	configOpts.Logger = logger
 
 	config, err := internal.ParseTalksFromConfig(configOpts)
 	if err != nil {
@@ -28,8 +30,9 @@ func run(out io.Writer) error {
 	}
 
 	config.Talks = internal.ProcessTalks(config.Talks)
+	configOpts.Config = config
 
-	server, err := internal.NewServer(&internal.ServerOpts{Config: config, Logger: logger})
+	server, err := internal.NewServer(configOpts)
 	if err != nil {
 		return err
 	}
