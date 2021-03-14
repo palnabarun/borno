@@ -27,6 +27,8 @@ func run(out io.Writer) error {
 		return err
 	}
 
+	config.Talks = internal.ProcessTalks(config.Talks)
+
 	server, err := internal.NewServer(&internal.ServerOpts{Config: config, Logger: logger})
 	if err != nil {
 		return err

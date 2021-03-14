@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"os"
 	"sort"
 	"time"
@@ -22,6 +23,7 @@ type Link struct {
 
 // Talk stores metadata for a talk
 type Talk struct {
+	Slug         string      `yaml:"slug"`
 	Link         string      `yaml:"link"`
 	Title        string      `yaml:"title"`
 	Date         time.Time   `yaml:"date"`
@@ -66,6 +68,18 @@ func ParseTalksFromConfig(opts *ConfigOpts) (BornoConfig, error) {
 	return config, nil
 }
 
+func ProcessTalks(talks []Talk) []Talk {
+	ts := make([]Talk, 0, 10)
+	for _, t := range talks {
+		if t.Slug == "" {
+			t.Slug = slugify(t.Title, t.Location)
+		}
+		ts = append(ts, t)
+	}
+
+	return ts
+}
+
 func groupByYear(talks []Talk) []TalkGroup {
 	yearMap := make(map[int]bool)
 
@@ -96,6 +110,18 @@ func groupByYear(talks []Talk) []TalkGroup {
 	sort.SliceStable(groups, func(i, j int) bool {
 		return groups[i].Year > groups[j].Year
 	})
+
+	return groups
+}
+
+func groupBySlug(talks []Talk) map[string]Talk {
+	groups := make(map[string]Talk, 0)
+
+	for _, t := range talks {
+		slug := slugify(t.Title, t.Location)
+
+		groups[fmt.Sprintf("/slides/%d/%s", t.Date.Year(), slug)] = t
+	}
 
 	return groups
 }

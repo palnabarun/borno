@@ -2,6 +2,8 @@ package internal
 
 import (
 	"io"
+	"strings"
+	"unicode"
 
 	"github.com/sirupsen/logrus"
 )
@@ -21,4 +23,22 @@ func NewLogger(opts *LoggerOpts) *logrus.Logger {
 	}
 
 	return logger
+}
+
+func slugify(title, location string) string {
+	slug := ""
+	for _, c := range strings.Join([]string{title, location}, " ") {
+		if !unicode.IsDigit(c) && !unicode.IsLetter(c) && !unicode.IsSpace(c) && string(c) != "-" {
+			continue
+		}
+
+		if unicode.IsSpace(c) || string(c) == "-" {
+			slug += "-"
+			continue
+		}
+
+		slug += string(unicode.ToLower(c))
+	}
+
+	return slug
 }
