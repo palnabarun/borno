@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -39,13 +40,22 @@ func (s Server) Run() error {
 func (s Server) handlerFunction(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
+	path := r.URL.Path
+
+	if path == "/" {
+		s.handleIndex(w, r)
+		return
+	}
+
 	if s.isSlideURL(r.URL.Path) {
 		s.handleSlideURL(w, r)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html")
+	http.NotFound(w, r)
+}
 
+func (s Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	responseData := struct {
 		Title  string
 		Author string
@@ -60,35 +70,14 @@ func (s Server) handlerFunction(w http.ResponseWriter, r *http.Request) {
 
 	template, err := s.templateStore.GetIndex()
 	if err != nil {
-		s.processError(w, r, err)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
 
 	if err := template.Execute(w, responseData); err != nil {
-		s.processError(w, r, err)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
-}
-
-func (s Server) processError(w http.ResponseWriter, r *http.Request, err error) {
-	s.logger.Errorln(err)
-
-	w.WriteHeader(http.StatusInternalServerError)
-	_, _ = w.Write([]byte("ERROR"))
-
-	return
-}
-
-func (s Server) processNotFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	_, _ = w.Write([]byte("NOT FOUND"))
-
-	return
-}
-
-func (s Server) processRedirect(w http.ResponseWriter, r *http.Request, location string) {
-	http.Redirect(w, r, location, http.StatusFound)
-	return
 }
 
 func (s Server) handleSlideURL(w http.ResponseWriter, r *http.Request) {
@@ -97,13 +86,14 @@ func (s Server) handleSlideURL(w http.ResponseWriter, r *http.Request) {
 	slugGroups := groupBySlug(s.config.Talks)
 	requested := r.URL.Path
 	if _, ok := slugGroups[requested]; !ok {
-		s.processNotFound(w, r)
+		http.NotFound(w, r)
 	}
 
 	talk := slugGroups[requested]
 
 	if !strings.HasPrefix(talk.SlideURL, "https://docs.google.com/presentation/d/e/") {
-		s.processRedirect(w, r, talk.SlideURL)
+		http.Redirect(w, r, talk.SlideURL, http.StatusFound)
+		return
 	}
 
 	responseData := struct {
@@ -118,12 +108,12 @@ func (s Server) handleSlideURL(w http.ResponseWriter, r *http.Request) {
 
 	template, err := s.templateStore.GetSlide()
 	if err != nil {
-		s.processError(w, r, err)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
 
 	if err := template.Execute(w, responseData); err != nil {
-		s.processError(w, r, err)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
 }
