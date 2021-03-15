@@ -55,34 +55,26 @@ func (s Server) handlerFunction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	responseData := struct {
-		Title  string
-		Author string
-		Links  []Link
-		Groups []TalkGroup
-	}{
+	responseData := IndexData{
 		Title:  s.config.PageTitle,
 		Author: s.config.Author,
 		Links:  s.config.Links,
-		Groups: groupByYear(s.config.Talks),
+		Groups: Talks.groupByYear(s.config.Talks),
 	}
 
-	template, err := s.templateStore.GetIndex()
+	bytes, err := s.templateStore.GenerateIndex(responseData)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
-
-	if err := template.Execute(w, responseData); err != nil {
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
-		return
-	}
+	w.Write(bytes)
+	return
 }
 
 func (s Server) handleSlideURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	slugGroups := groupBySlug(s.config.Talks)
+	slugGroups := Talks.groupBySlug(s.config.Talks)
 	requested := r.URL.Path
 	if _, ok := slugGroups[requested]; !ok {
 		http.NotFound(w, r)
@@ -90,7 +82,7 @@ func (s Server) handleSlideURL(w http.ResponseWriter, r *http.Request) {
 
 	talk := slugGroups[requested]
 
-	if !strings.HasPrefix(talk.SlideURL, "https://docs.google.com/presentation/d/e/") {
+	if talk.IsSlideEmbed() {
 		http.Redirect(w, r, talk.SlideURL, http.StatusFound)
 		return
 	}

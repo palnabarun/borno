@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -33,6 +34,9 @@ type Talk struct {
 	VideoURL     string      `yaml:"video"`
 	CoPresenters []Presenter `yaml:"copresenters"`
 }
+
+// Talks type is a list of Talk
+type Talks []Talk
 
 // TalkGroup stores Talk objects for a year
 type TalkGroup struct {
@@ -78,19 +82,31 @@ func ParseTalksFromConfig(opts *ConfigOpts) (BornoConfig, error) {
 func ProcessTalks(talks []Talk) []Talk {
 	ts := make([]Talk, 0, 10)
 	for _, t := range talks {
-		if t.Slug == "" {
-			t.Slug = slugify(t.Title, t.Location)
-		}
+		t.EnsureSlug()
 		ts = append(ts, t)
 	}
 
 	return ts
 }
 
-func groupByYear(talks []Talk) []TalkGroup {
+func (t Talk) IsSlideEmbed() bool {
+	if !strings.HasPrefix(t.SlideURL, "https://docs.google.com/presentation/d/e/") {
+		return true
+	}
+
+	return false
+}
+
+func (t *Talk) EnsureSlug() {
+	if t.Slug == "" {
+		t.Slug = slugify(t.Title, t.Location)
+	}
+}
+
+func (ts Talks) groupByYear() []TalkGroup {
 	yearMap := make(map[int]bool)
 
-	for _, t := range talks {
+	for _, t := range ts {
 		yearMap[t.Date.Year()] = true
 	}
 
@@ -111,7 +127,7 @@ func groupByYear(talks []Talk) []TalkGroup {
 	}
 
 	for y := range yearMap {
-		groups = append(groups, TalkGroup{Year: y, Talks: getTalksForYear(talks, y)})
+		groups = append(groups, TalkGroup{Year: y, Talks: getTalksForYear(ts, y)})
 	}
 
 	sort.SliceStable(groups, func(i, j int) bool {
@@ -121,14 +137,15 @@ func groupByYear(talks []Talk) []TalkGroup {
 	return groups
 }
 
-func groupBySlug(talks []Talk) map[string]Talk {
+func (ts Talks) groupBySlug() map[string]Talk {
 	groups := make(map[string]Talk, 0)
 
-	for _, t := range talks {
+	for _, t := range ts {
 		slug := slugify(t.Title, t.Location)
 
 		groups[fmt.Sprintf("/slides/%d/%s", t.Date.Year(), slug)] = t
 	}
 
 	return groups
+
 }
